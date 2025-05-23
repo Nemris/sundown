@@ -63,12 +63,14 @@ your own gut instinct and look at the existing code.
 
 Remember to type-annotate all parameters and returned values, and always add docstrings to public
 code.
+While test strategies are best with a docstring each, test modules and functions do not need them,
+provided the test names themselves are descriptive.
 
 This project follows composition over inheritance, except for the exception hierarchy.
 
 ### Linting and testing
 
-Before opening a PR, ensure that your code is tested with Pylint. If you need to disable a warning,
+Before opening a PR, ensure that your code is linted with Pylint. If you need to disable a warning,
 for example in case of false positives, leave a comment explaining your reasoning or mention it in
 the PR.
 
