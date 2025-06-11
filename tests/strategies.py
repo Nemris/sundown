@@ -28,7 +28,7 @@ def ids(draw) -> str:
 
 
 @st.composite
-def usernames(draw):
+def usernames(draw) -> str:
     """
     Return DeviantArt usernames.
 
@@ -37,3 +37,45 @@ def usernames(draw):
     last character.
     """
     return draw(st.from_regex(r"[A-Za-z0-9]+[A-Za-z0-9-]+[A-Za-z0-9]+", fullmatch=True))
+
+
+@st.composite
+def deviation_names(draw, with_label=True) -> str:
+    """
+    Return DeviantArt deviation names.
+
+    Args:
+        with_label: If True, prepend the deviation ID with a random
+            label.
+    """
+    id_ = draw(ids())
+
+    if with_label:
+        label = draw(st.from_regex(r"[A-Za-z0-9-]+", fullmatch=True))
+        return "-".join([label, id_])
+    return id_
+
+
+@st.composite
+def deviation_urls(draw, valid=True) -> str:
+    """
+    Return DeviantArt deviation URLs.
+
+    Args:
+        valid: If True, ensure the deviation category is valid, else
+            use a randomized string.
+    """
+    if valid:
+        kind = st.one_of(st.just("art"), st.just("journal"))
+    else:
+        kind = st.from_regex(r"[a-z]+", fullmatch=True).filter(
+            lambda n: n not in ["art", "journal"]
+        )
+    return "/".join(
+        [
+            "www.deviantart.com",
+            draw(usernames()),
+            draw(kind),
+            draw(deviation_names(with_label=False)),
+        ]
+    )
