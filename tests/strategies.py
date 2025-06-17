@@ -79,3 +79,21 @@ def deviation_urls(draw, valid=True) -> str:
             draw(deviation_names(with_label=False)),
         ]
     )
+
+
+@st.composite
+def comment_urls(draw, valid=True) -> str:
+    """
+    Return DeviantArt comment URLs.
+
+    Args:
+        valid: If True, ensure the deviation type is valid, else use a
+            randomized value.
+    """
+    if valid:
+        type_id = 1
+    else:
+        type_id = draw(st.integers(min_value=2))
+    return "/".join(
+        ["www.deviantart.com/comments", str(type_id), draw(ids()), draw(ids())]
+    )
