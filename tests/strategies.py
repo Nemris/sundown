@@ -2,6 +2,8 @@
 
 from hypothesis import strategies as st
 
+from sundown.comment import ContentKind
+
 
 @st.composite
 def input_tags(draw) -> str:
@@ -97,3 +99,57 @@ def comment_urls(draw, valid=True) -> str:
     return "/".join(
         ["www.deviantart.com/comments", str(type_id), draw(ids()), draw(ids())]
     )
+
+
+@st.composite
+def comment_markups(draw, paragraphs: int = 1, allow_mentions: bool = False) -> dict:
+    """
+    Return DeviantArt comment markups.
+
+    Args:
+        paragraphs: Amount of paragraphs to generate.
+        allow_mentions: If True, allow some paragraphs to contain a
+            mention instead of text. Note: it's not guaranteed that
+                the final markup will have mentions.
+    """
+    pars = []
+    for _ in range(paragraphs):
+        con = (
+            draw(st.one_of(comment_texts(), user_mentions()))
+            if allow_mentions
+            else draw(comment_texts())
+        )
+        par = {"type": "paragraph", "content": [con]}
+        pars.append(par)
+
+    return {"document": {"content": pars}}
+
+
+@st.composite
+def comment_features(draw):
+    """Return DeviantArt comment features."""
+    # Only consider the wordcount for the time being.
+    return [
+        {
+            "type": "WORD_COUNT_FEATURE",
+            "data": {
+                "words": draw(st.integers(min_value=1)),
+            },
+        }
+    ]
+
+
+@st.composite
+def comment_texts(draw) -> dict:
+    """Return DeviantArt comment texts."""
+    alphabet = st.characters(exclude_characters=["\n"])
+    return {"type": str(ContentKind.TEXT), "text": draw(st.text(alphabet, min_size=1))}
+
+
+@st.composite
+def user_mentions(draw) -> dict:
+    """Return DeviantArt user mentions."""
+    return {
+        "type": str(ContentKind.MENTION),
+        "attrs": {"user": {"username": draw(usernames()), "type": ""}},
+    }
