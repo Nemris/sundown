@@ -7,7 +7,7 @@ import dataclasses
 from enum import StrEnum
 import re
 
-from sundown.deviation import Deviation, Kind
+from sundown.deviation import Deviation, Kind, PartialDeviation
 
 
 URL_PATTERN = re.compile(r"www\.deviantart\.com/comments/(\d+)/(\d+)/(\d+)")
@@ -31,7 +31,7 @@ class URL:
         comment_id: ID of the comment.
     """
 
-    deviation: Deviation
+    deviation: Deviation | PartialDeviation
     comment_id: str
 
     def __str__(self) -> str:
@@ -49,8 +49,8 @@ class URL:
         """
         Build a URL from a string representation of a comment URL.
 
-        The deviation field in the resulting URL instance will have an
-        empty artist field.
+        The deviation field in the resulting URL will be a
+        PartialDeviation.
 
         Args:
             url: Comment URL.
@@ -70,7 +70,7 @@ class URL:
             raise ValueError(f"{url!r}: invalid comment URL") from exc
 
         try:
-            dev = Deviation("", Kind(dev_kind), dev_id)
+            dev = PartialDeviation(Kind(dev_kind), dev_id)
         except ValueError as exc:
             raise NotImplementedError(f"{dev_kind!r}: kind not implemented") from exc
 
