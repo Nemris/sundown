@@ -21,7 +21,14 @@ class Kind(StrEnum):
 
 @dataclasses.dataclass
 class Deviation:
-    """A deviation."""
+    """
+    A deviation.
+
+    Args:
+        artist: Deviation artist.
+        kind: Deviation kind.
+        id: Deviation ID.
+    """
 
     artist: str
     kind: Kind
