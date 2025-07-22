@@ -64,3 +64,30 @@ class Deviation:
                 self.id,
             ]
         )
+
+
+@dataclasses.dataclass
+class PartialDeviation:
+    """
+    A deviation with only the ID and kind, and no artist.
+
+    Args:
+        kind: Deviation kind.
+        id: Deviation ID.
+    """
+
+    kind: Kind
+    id: str
+
+    def promote(self, artist: str) -> Deviation:
+        """
+        Promote this PartialDeviation to a Deviation.
+
+        Args:
+            artist: The creator of the deviation.
+
+        Returns:
+            A complete Deviation instantiated from this
+            PartialDeviation's metadata.
+        """
+        return Deviation(artist, self.kind, self.id)

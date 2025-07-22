@@ -3,7 +3,7 @@
 from hypothesis import given
 import pytest
 
-from sundown.deviation import Deviation, Kind
+from sundown.deviation import Deviation, Kind, PartialDeviation
 from tests import strategies as myst
 
 
@@ -38,3 +38,11 @@ def test_deviation_journal_aliased_to_art():
     d = Deviation("", Kind.JOURNAL, "")
 
     assert d.kind == Kind.ART
+
+
+@given(myst.ids(), myst.usernames())
+def test_partial_deviation_can_promote(dev_id, artist):
+    p = PartialDeviation(Kind.ART, dev_id)
+    d = p.promote(artist)
+
+    assert d.artist == artist and d.kind == p.kind and d.id == p.id
