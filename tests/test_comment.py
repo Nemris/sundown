@@ -1,10 +1,13 @@
 # pylint: disable=missing-module-docstring
 # pylint: disable=missing-function-docstring
 
+from datetime import datetime
+
 from hypothesis import given
 import pytest
 
-from sundown.comment import Body, ContentKind, URL
+from sundown.comment import Body, ContentKind, Metadata, URL
+from sundown import deviation
 from tests import strategies as myst
 
 
@@ -67,3 +70,11 @@ def test_comment_body_finds_wordcount_from_feature(feat):
 
     # NOTE: this will need adjusting if we'll emulate more features.
     assert body.words == feat[0]["data"]["words"]
+
+
+@given(myst.ids(), myst.ids())
+def test_comment_metadata_returns_good_url(dev_id, comment_id):
+    p = deviation.PartialDeviation(deviation.Kind.ART, dev_id)
+    m = Metadata(comment_id, p, None, "", datetime.now(), None, 0)
+
+    assert m.url.deviation == p and m.url.comment_id == comment_id

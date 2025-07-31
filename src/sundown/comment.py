@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 import dataclasses
+from datetime import datetime
 from enum import StrEnum
 import re
 
@@ -75,6 +76,35 @@ class URL:
             raise NotImplementedError(f"{dev_kind!r}: kind not implemented") from exc
 
         return cls(dev, comment_id)
+
+
+@dataclasses.dataclass
+class Metadata:
+    """
+    A comment's metadata.
+
+    Args:
+        id: ID of this comment.
+        deviation: Deviation being commented to.
+        parent_id: ID of the parent comment.
+        author: Author of this comment.
+        posted: Comment creation date.
+        edited: Comment edit date.
+        replies: Replies to this comment.
+    """
+
+    id: str
+    deviation: Deviation | PartialDeviation
+    parent_id: str | None
+    author: str
+    posted: datetime
+    edited: datetime | None
+    replies: int
+
+    @property
+    def url(self) -> URL:
+        """URL of this comment."""
+        return URL(self.deviation, self.id)
 
 
 @dataclasses.dataclass
