@@ -1,5 +1,7 @@
 """Common module for custom Hypothesis test strategies."""
 
+import json
+
 from hypothesis import strategies as st
 
 from sundown.comment import ContentKind
@@ -102,6 +104,41 @@ def comment_urls(draw, valid=True) -> str:
 
 
 @st.composite
+def comments(draw, valid=True) -> dict:
+    """
+    Return DeviantArt comments.
+
+    Args:
+        value: If True, return a blob resembling a comment, else return
+            an empty dict.
+    """
+    if not valid:
+        return {}
+
+    # We convert the required IDs to ints to simulate the data returned
+    # by the API.
+    if parent_id := draw(st.one_of(st.none(), ids())):
+        parent_id = int(parent_id)
+
+    return {
+        "commentId": int(draw(ids())),
+        "typeId": 1,
+        "itemId": int(draw(ids())),
+        "parentId": parent_id,
+        "posted": draw(comment_timestamps()),
+        "edited": draw(st.one_of(st.none(), comment_timestamps())),
+        "replies": draw(st.integers()),
+        "textContent": {
+            "html": {
+                "markup": json.dumps(draw(comment_markups())),
+                "features": json.dumps(draw(comment_features())),
+            },
+        },
+        "user": {"username": draw(usernames())},
+    }
+
+
+@st.composite
 def comment_markups(draw, paragraphs: int = 1, allow_mentions: bool = False) -> dict:
     """
     Return DeviantArt comment markups.
@@ -144,6 +181,15 @@ def comment_texts(draw) -> dict:
     """Return DeviantArt comment texts."""
     alphabet = st.characters(exclude_characters=["\n"])
     return {"type": str(ContentKind.TEXT), "text": draw(st.text(alphabet, min_size=1))}
+
+
+@st.composite
+def comment_timestamps(draw) -> str:
+    """Return datetimes used in DeviantArt comments."""
+    dt = draw(st.datetimes())
+
+    # Mimic DA's timestamp format and timezone.
+    return "".join([dt.strftime("%Y-%m-%dT%H:%M:%S"), "-0800"])
 
 
 @st.composite

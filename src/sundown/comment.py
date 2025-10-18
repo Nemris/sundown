@@ -6,12 +6,21 @@ from collections.abc import Iterator
 import dataclasses
 from datetime import datetime
 from enum import StrEnum
+import json
 import re
 
 from sundown.deviation import Deviation, Kind, PartialDeviation
 
 
 URL_PATTERN = re.compile(r"www\.deviantart\.com/comments/(\d+)/(\d+)/(\d+)")
+
+
+class Error(Exception):
+    """A generic error occurred while handling comments."""
+
+
+class CommentJSONError(Error):
+    """The JSON representing a comment is malformed."""
 
 
 class ContentKind(StrEnum):
@@ -76,6 +85,85 @@ class URL:
             raise NotImplementedError(f"{dev_kind!r}: kind not implemented") from exc
 
         return cls(dev, comment_id)
+
+
+@dataclasses.dataclass
+class Comment:
+    """
+    A comment to a deviation.
+
+    Args:
+        metadata: The comment's metadata.
+        body: The comment's body and related metrics.
+    """
+
+    metadata: Metadata
+    body: Body
+
+    @classmethod
+    def from_json(cls, data: dict) -> Comment:
+        """
+        Build a Comment from a JSON object representing a comment.
+
+        Args:
+            data: A JSON object representing a comment.
+
+        Returns:
+            An instance of Comment initialized from data.
+
+        Raises:
+            CommentJSONError: If the JSON data is malformed.
+        """
+        return cls(cls._assemble_metadata(data), cls._assemble_body(data))
+
+    @staticmethod
+    def _assemble_metadata(data: dict) -> Metadata:
+        """
+        Build comment Metadata from a JSON object representing a comment.
+
+        Args:
+            data: A JSON object representing a comment.
+
+        Returns:
+            An instance of Metadata initialized from data.
+
+        Raises:
+            CommentJSONError: If the JSON data is malformed.
+        """
+        try:
+            comment_id = str(data["commentId"])
+            dev = PartialDeviation(Kind(str(data["typeId"])), str(data["itemId"]))
+            parent_id = str(data["parentId"]) if data["parentId"] else None
+            author = data["user"]["username"]
+            posted = datetime.fromisoformat(data["posted"])
+            edited = datetime.fromisoformat(data["edited"]) if data["edited"] else None
+            replies = data["replies"]
+        except KeyError as exc:
+            raise CommentJSONError("comment JSON: malformed metadata") from exc
+
+        return Metadata(comment_id, dev, parent_id, author, posted, edited, replies)
+
+    @staticmethod
+    def _assemble_body(data: dict) -> Body:
+        """
+        Build comment Body from a JSON object representing a comment.
+
+        Args:
+            data: A JSON object representing a comment.
+
+        Returns:
+            An instance of Body initialized from data.
+
+        Raises:
+            CommentJSONError: If the JSON data is malformed.
+        """
+        try:
+            markup = json.loads(data["textContent"]["html"]["markup"])
+            feats = json.loads(data["textContent"]["html"]["features"])
+        except KeyError as exc:
+            raise CommentJSONError("comment JSON: malformed body") from exc
+
+        return Body(markup, feats)
 
 
 @dataclasses.dataclass

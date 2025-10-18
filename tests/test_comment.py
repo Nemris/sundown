@@ -6,7 +6,7 @@ from datetime import datetime
 from hypothesis import given
 import pytest
 
-from sundown.comment import Body, ContentKind, Metadata, URL
+from sundown.comment import Body, Comment, CommentJSONError, ContentKind, Metadata, URL
 from sundown import deviation
 from tests import strategies as myst
 
@@ -26,6 +26,18 @@ def test_comment_url_is_not_built_from_invalid_url(url):
 def test_comment_url_is_not_built_from_non_comment_url(url):
     with pytest.raises(ValueError):
         _ = URL.from_str(url)
+
+
+@given(myst.comments())
+def test_comment_is_built_from_valid_json(json):
+    Comment.from_json(json)
+
+
+@given(myst.comments(valid=False))
+def test_comment_is_not_built_from_invalid_json(json):
+    # We only care that the error is the same in all occasions.
+    with pytest.raises(CommentJSONError):
+        Comment.from_json(json)
 
 
 @given(myst.comment_markups(3))
