@@ -1,5 +1,6 @@
 """Common module for custom Hypothesis test strategies."""
 
+from datetime import datetime
 import json
 
 from hypothesis import strategies as st
@@ -186,10 +187,11 @@ def comment_texts(draw) -> dict:
 @st.composite
 def comment_timestamps(draw) -> str:
     """Return datetimes used in DeviantArt comments."""
-    dt = draw(st.datetimes())
+    # NOTE: workaround for https://github.com/python/cpython/issues/120713.
+    dt = draw(st.datetimes(min_value=datetime.fromisoformat("1000-01-01T00:00:00")))
 
     # Mimic DA's timestamp format and timezone.
-    return "".join([dt.strftime("%Y-%m-%dT%H:%M:%S"), "-0800"])
+    return dt.strftime("%Y-%m-%dT%H:%M:%S-0800")
 
 
 @st.composite
