@@ -188,7 +188,7 @@ def comment_texts(draw) -> dict:
 def comment_timestamps(draw) -> str:
     """Return datetimes used in DeviantArt comments."""
     # NOTE: workaround for https://github.com/python/cpython/issues/120713.
-    dt = draw(st.datetimes(min_value=datetime.fromisoformat("1000-01-01T00:00:00")))
+    dt = draw(st.datetimes(min_value=datetime(1000, 1, 1)))
 
     # Mimic DA's timestamp format and timezone.
     return dt.strftime("%Y-%m-%dT%H:%M:%S-0800")
