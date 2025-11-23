@@ -105,11 +105,13 @@ def comment_urls(draw, valid=True) -> str:
 
 
 @st.composite
-def comment_pages(draw, valid=True) -> dict:
+def comment_pages(draw, entries: int = 1, valid: bool = True) -> dict:
     """
     Return DeviantArt comment pages.
 
     Args:
+        entries: Amount of comments to place in the page. Note: comments
+            are not unique.
         valid: If True, return a blob resembling a page, else return a
             page with invalid metadata.
     """
@@ -128,7 +130,7 @@ def comment_pages(draw, valid=True) -> dict:
         "hasLess": has_less,
         "nextOffset": next_offset,
         "prevOffset": prev_offset,
-        "thread": [draw(comments())],
+        "thread": [draw(comments())] * entries,
     }
 
     if not valid:

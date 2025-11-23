@@ -4,6 +4,7 @@
 from datetime import datetime
 
 from hypothesis import given
+from hypothesis import strategies as st
 import pytest
 
 from sundown.comment import (
@@ -59,6 +60,22 @@ def test_page_is_not_built_from_invalid_json(json):
     # We only care that the error is the same in all occasions.
     with pytest.raises(PageJSONError):
         Page.from_json(json)
+
+
+@given(st.data(), st.integers(min_value=1, max_value=10))
+def test_page_returns_correct_length(data, entries):
+    # Randomizing but capping the amount of comments in a page.
+    json = data.draw(myst.comment_pages(entries))
+
+    assert len(Page.from_json(json)) == entries
+
+
+@given(st.data(), st.integers(min_value=1, max_value=10))
+def test_page_iterates_through_comments(data, entries):
+    # Randomizing but capping the amount of comments in a page.
+    json = data.draw(myst.comment_pages(entries))
+
+    assert sum(True for c in Page.from_json(json)) == entries
 
 
 @given(myst.comment_markups(3))

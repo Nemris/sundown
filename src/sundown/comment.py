@@ -110,6 +110,12 @@ class Page:
     prev_offset: int | None
     comments: list[Comment]
 
+    def __iter__(self) -> Iterator[Comment]:
+        return iter(self.comments)
+
+    def __len__(self) -> int:
+        return len(self.comments)
+
     @classmethod
     def from_json(cls, data: dict) -> Page:
         """
