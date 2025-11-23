@@ -6,7 +6,16 @@ from datetime import datetime
 from hypothesis import given
 import pytest
 
-from sundown.comment import Body, Comment, CommentJSONError, ContentKind, Metadata, URL
+from sundown.comment import (
+    Body,
+    Comment,
+    CommentJSONError,
+    ContentKind,
+    Metadata,
+    Page,
+    PageJSONError,
+    URL,
+)
 from sundown import deviation
 from tests import strategies as myst
 
@@ -38,6 +47,18 @@ def test_comment_is_not_built_from_invalid_json(json):
     # We only care that the error is the same in all occasions.
     with pytest.raises(CommentJSONError):
         Comment.from_json(json)
+
+
+@given(myst.comment_pages())
+def test_page_is_built_from_valid_json(json):
+    Page.from_json(json)
+
+
+@given(myst.comment_pages(valid=False))
+def test_page_is_not_built_from_invalid_json(json):
+    # We only care that the error is the same in all occasions.
+    with pytest.raises(PageJSONError):
+        Page.from_json(json)
 
 
 @given(myst.comment_markups(3))

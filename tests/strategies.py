@@ -105,6 +105,39 @@ def comment_urls(draw, valid=True) -> str:
 
 
 @st.composite
+def comment_pages(draw, valid=True) -> dict:
+    """
+    Return DeviantArt comment pages.
+
+    Args:
+        valid: If True, return a blob resembling a page, else return a
+            page with invalid metadata.
+    """
+    has_more = draw(st.booleans())
+    has_less = draw(st.booleans())
+
+    # next_offset is at least 1 because we're always at least on the
+    # zeroth comment.
+    next_offset = draw(st.integers(min_value=1)) if has_more else None
+    prev_offset = draw(st.integers(min_value=0)) if has_less else None
+    if (next_offset and prev_offset) and next_offset < prev_offset:
+        next_offset, prev_offset = prev_offset, next_offset
+
+    page = {
+        "hasMore": has_more,
+        "hasLess": has_less,
+        "nextOffset": next_offset,
+        "prevOffset": prev_offset,
+        "thread": [draw(comments())],
+    }
+
+    if not valid:
+        del page["hasMore"]
+
+    return page
+
+
+@st.composite
 def comments(draw, valid=True) -> dict:
     """
     Return DeviantArt comments.

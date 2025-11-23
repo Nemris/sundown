@@ -19,6 +19,10 @@ class Error(Exception):
     """A generic error occurred while handling comments."""
 
 
+class PageJSONError(Error):
+    """The JSON representing a comment page is malformed."""
+
+
 class CommentJSONError(Error):
     """The JSON representing a comment is malformed."""
 
@@ -85,6 +89,55 @@ class URL:
             raise NotImplementedError(f"{dev_kind!r}: kind not implemented") from exc
 
         return cls(dev, comment_id)
+
+
+@dataclasses.dataclass
+class Page:
+    """
+    A page of comments to a deviation.
+
+    Args:
+        has_more: Whether there is a next page.
+        has_less: Whether there is a previous page.
+        next_offset: Starting comment offset of the next page.
+        prev_offset: Starting comment offset of the previous page.
+        comments: Comments contained in this page.
+    """
+
+    has_more: bool
+    has_less: bool
+    next_offset: int | None
+    prev_offset: int | None
+    comments: list[Comment]
+
+    @classmethod
+    def from_json(cls, data: dict) -> Page:
+        """
+        Build a Page from a JSON object representing a comment page.
+
+        Args:
+            data: A JSON object representing a comment page.
+
+        Returns:
+            An instance of Page initialized from data.
+
+        Raises:
+            PageJSONError: If the JSON data is malformed.
+        """
+        try:
+            has_more = data["hasMore"]
+            has_less = data["hasLess"]
+            next_offset = data["nextOffset"]
+            prev_offset = data["prevOffset"]
+        except KeyError as exc:
+            raise PageJSONError("page JSON: malformed page metadata") from exc
+
+        try:
+            comments = [Comment.from_json(c) for c in data["thread"]]
+        except CommentJSONError as exc:
+            raise PageJSONError("page JSON: malformed comment section") from exc
+
+        return cls(has_more, has_less, next_offset, prev_offset, comments)
 
 
 @dataclasses.dataclass
