@@ -110,7 +110,7 @@ def comments(draw, valid=True) -> dict:
     Return DeviantArt comments.
 
     Args:
-        value: If True, return a blob resembling a comment, else return
+        valid: If True, return a blob resembling a comment, else return
             an empty dict.
     """
     if not valid:
