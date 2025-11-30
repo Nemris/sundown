@@ -118,7 +118,7 @@ class Client:
             async with self.session.get(url, **kwargs) as resp:
                 resp.raise_for_status()
                 return await resp.text()
-        except aiohttp.ServerResponseError as exc:
+        except aiohttp.ClientResponseError as exc:
             raise ServerResponseError(
                 f"{exc.request_info.url}: {exc.status} {exc.message}"
             ) from exc
