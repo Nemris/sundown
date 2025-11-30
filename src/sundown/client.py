@@ -35,7 +35,7 @@ class BadJSONError(Error):
 class APIEndpoint(StrEnum):
     """Eclipse endpoints supported by Sundown."""
 
-    COMMENTS = "https://www.deviantart.com/_napi/shared_api/comments/thread"
+    COMMENTS = "https://www.deviantart.com/_puppy/dashared/comments/thread"
 
 
 def authenticate(coro: Coroutine) -> Coroutine:
