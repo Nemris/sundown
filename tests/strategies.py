@@ -45,7 +45,7 @@ def usernames(draw) -> str:
 
 
 @st.composite
-def deviation_names(draw, with_label=True) -> str:
+def deviation_names(draw, with_label: bool = True) -> str:
     """
     Return DeviantArt deviation names.
 
@@ -62,7 +62,7 @@ def deviation_names(draw, with_label=True) -> str:
 
 
 @st.composite
-def deviation_urls(draw, valid=True) -> str:
+def deviation_urls(draw, valid: bool = True) -> str:
     """
     Return DeviantArt deviation URLs.
 
@@ -87,7 +87,7 @@ def deviation_urls(draw, valid=True) -> str:
 
 
 @st.composite
-def comment_urls(draw, valid=True) -> str:
+def comment_urls(draw, valid: bool = True) -> str:
     """
     Return DeviantArt comment URLs.
 
@@ -140,7 +140,7 @@ def comment_pages(draw, entries: int = 1, valid: bool = True) -> dict:
 
 
 @st.composite
-def comments(draw, valid=True) -> dict:
+def comments(draw, valid: bool = True) -> dict:
     """
     Return DeviantArt comments.
 
@@ -199,7 +199,7 @@ def comment_markups(draw, paragraphs: int = 1, allow_mentions: bool = False) -> 
 
 
 @st.composite
-def comment_features(draw):
+def comment_features(draw) -> list[dict]:
     """Return DeviantArt comment features."""
     # Only consider the wordcount for the time being.
     return [
