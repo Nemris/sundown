@@ -14,11 +14,24 @@ from sundown.comment import (
     ContentKind,
     Metadata,
     Page,
+    PageIterator,
     PageJSONError,
     URL,
 )
+from sundown.client import Client
 from sundown import deviation
 from tests import strategies as myst
+
+
+def _get_dummy_page_json() -> dict:
+    """Returns a minimal comment page JSON."""
+    return {
+        "hasMore": False,
+        "hasLess": False,
+        "nextOffset": None,
+        "prevOffset": None,
+        "thread": [],
+    }
 
 
 @given(myst.comment_urls())
@@ -48,6 +61,50 @@ def test_comment_is_not_built_from_invalid_json(json):
     # We only care that the error is the same in all occasions.
     with pytest.raises(CommentJSONError):
         Comment.from_json(json)
+
+
+async def test_page_iterator_updates_param_offset():
+    # We'll mimic the Client#query() interface even if we don't use arguments.
+    # pylint: disable=unused-argument
+    async def mock_query(*args, **kwargs):
+        params = args[-1]
+
+        json = _get_dummy_page_json()
+        json["hasMore"] = True
+        json["nextOffset"] = params["offset"] + params["limit"]
+        return json
+
+    # The actual deviation data is irrelevant.
+    d = deviation.PartialDeviation(deviation.Kind.ART, "0")
+
+    with pytest.MonkeyPatch().context() as mp:
+        mp.setattr(Client, "query", mock_query)
+
+        async with Client() as c:
+            pi = PageIterator(c, d, 0, 50)
+            p = await anext(pi)
+
+            assert pi.params["offset"] == p.next_offset
+
+
+async def test_page_iterator_stops_when_no_more_pages_exist():
+    # We'll mimic the Client#query() interface even if we don't use arguments.
+    # pylint: disable=unused-argument
+    async def mock_query(*args, **kwargs):
+        return _get_dummy_page_json()
+
+    # The actual deviation data is irrelevant.
+    d = deviation.PartialDeviation(deviation.Kind.ART, "0")
+
+    with pytest.MonkeyPatch().context() as mp:
+        mp.setattr(Client, "query", mock_query)
+
+        async with Client() as c:
+            pi = PageIterator(c, d, 0, 50)
+            await anext(pi)
+
+            with pytest.raises(StopAsyncIteration):
+                await anext(pi)
 
 
 @given(myst.comment_pages())

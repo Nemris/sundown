@@ -9,6 +9,7 @@ from enum import StrEnum
 import json
 import re
 
+from sundown.client import APIEndpoint, Client
 from sundown.deviation import Deviation, Kind, PartialDeviation
 
 
@@ -89,6 +90,70 @@ class URL:
             raise NotImplementedError(f"{dev_kind!r}: kind not implemented") from exc
 
         return cls(dev, comment_id)
+
+
+class PageIterator:
+    """
+    An iterator to fetch pages of comments.
+
+    For now, only fetching newest to oldest comments is supported.
+
+    Attributes:
+        client: Client to use for fetching comment pages.
+        params: Parameters to pass to the Eclipse API endpoint.
+    """
+
+    def __init__(
+        self,
+        client: Client,
+        deviation: Deviation | PartialDeviation,
+        depth: int,
+        limit: int,
+    ) -> None:
+        """
+        Initialize an instance of PageIterator.
+
+        Args:
+            client: Client to use for fetching comment pages.
+            deviation: Deviation whose comment pages to fetch.
+            depth: Comment reply depth. Use 0 to exclude replies.
+                Must be between 0 and 5 inclusive.
+            limit: Amount of comments in a page.
+                Must be between 1 and 50 inclusive.
+        """
+        self.client = client
+        self.params = {
+            "itemid": deviation.id,
+            "typeid": deviation.kind,
+            "order": "newest",
+            "maxdepth": min(max(depth, 0), 5),
+            "offset": 0,
+            "limit": min(max(limit, 1), 50),
+        }
+
+    def __aiter__(self) -> Iterator:
+        return self
+
+    async def __anext__(self) -> Page:
+        """
+        Fetch and return a comment page.
+
+        Returns:
+            A comment page obtained according to self.params.
+
+        Raises:
+            client.Error: If an error occurs while fetching the page.
+            PageJSONError: If the JSON data is malformed.
+        """
+        if self.params["offset"] is None:
+            raise StopAsyncIteration
+
+        page = Page.from_json(
+            await self.client.query(APIEndpoint.COMMENTS, self.params)
+        )
+        self.params["offset"] = page.next_offset if page.has_more else None
+
+        return page
 
 
 @dataclasses.dataclass
