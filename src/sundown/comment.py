@@ -338,32 +338,30 @@ class Body:
     @property
     def text(self) -> str:
         """The comment's plain text."""
-        contents = (
-            c
-            for p in self.get_paragraphs()
-            for c in p["content"]
-            if c["type"] in (ContentKind.TEXT, ContentKind.MENTION)
-        )
+        lines = []
+        for p in self.get_paragraphs():
+            # Paragraphs can lack contents, let's make them look like empty lines.
+            if not "content" in p:
+                lines.append("")
+                continue
 
-        lines = [
-            (
-                c["text"]
-                if c["type"] == ContentKind.TEXT
-                else c["attrs"]["user"]["username"]
-            )
-            for c in contents
-        ]
+            parts = []
+            for c in p["content"]:
+                if c["type"] == ContentKind.TEXT:
+                    parts.append(c["text"])
+                elif c["type"] == ContentKind.MENTION:
+                    parts.append(c["attrs"]["user"]["username"])
+                # Disregard any other content kind.
+            lines.append("".join(parts))
 
         return "\n".join(lines)
 
     @property
     def mentions(self) -> Iterator[str]:
         """The mentions in this comment."""
+        pars = (p for p in self.get_paragraphs() if "content" in p)
         mentions = (
-            c
-            for p in self.get_paragraphs()
-            for c in p["content"]
-            if c["type"] == ContentKind.MENTION
+            c for p in pars for c in p["content"] if c["type"] == ContentKind.MENTION
         )
 
         return (m["attrs"]["user"]["username"] for m in mentions)

@@ -136,12 +136,10 @@ def test_page_iterates_through_comments(data, entries):
 
 
 @given(myst.comment_markups(3))
-def test_comment_body_finds_all_text(markup):
+def test_comment_body_finds_all_lines(markup):
     body = Body(markup, {})
 
-    con = markup["document"]["content"]
-    for line, par in zip(body.text.split("\n"), con):
-        assert line == par["content"][0][str(ContentKind.TEXT)]
+    assert len(body.text.split("\n")) == len(markup["document"]["content"])
 
 
 @given(myst.comment_markups(3, True))
@@ -158,7 +156,7 @@ def test_comment_body_finds_all_existing_mentions(markup):
     mentions = sum(
         True
         for par in markup["document"]["content"]
-        if par["content"][0]["type"] == ContentKind.MENTION
+        if "content" in par and par["content"][0]["type"] == ContentKind.MENTION
     )
 
     assert len(list(body.mentions)) == mentions

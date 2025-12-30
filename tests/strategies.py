@@ -187,6 +187,11 @@ def comment_markups(draw, paragraphs: int = 1, allow_mentions: bool = False) -> 
     """
     pars = []
     for _ in range(paragraphs):
+        has_content = draw(st.booleans())
+        if not has_content:
+            pars.append({"type": "paragraph"})
+            continue
+
         con = (
             draw(st.one_of(comment_texts(), user_mentions()))
             if allow_mentions
