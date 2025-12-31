@@ -193,9 +193,9 @@ def comment_markups(draw, paragraphs: int = 1, allow_mentions: bool = False) -> 
             continue
 
         con = (
-            draw(st.one_of(comment_texts(), user_mentions()))
+            draw(st.one_of(comment_hard_breaks(), comment_texts(), user_mentions()))
             if allow_mentions
-            else draw(comment_texts())
+            else draw(st.one_of(comment_hard_breaks(), comment_texts()))
         )
         par = {"type": "paragraph", "content": [con]}
         pars.append(par)
@@ -215,6 +215,11 @@ def comment_features(draw) -> list[dict]:
             },
         }
     ]
+
+
+def comment_hard_breaks() -> dict:
+    """Return DeviantArt comment hard breaks."""
+    return st.just({"type": str(ContentKind.HARD_BREAK)})
 
 
 @st.composite

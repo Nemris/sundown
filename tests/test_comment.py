@@ -139,7 +139,16 @@ def test_page_iterates_through_comments(data, entries):
 def test_comment_body_finds_all_lines(markup):
     body = Body(markup, {})
 
-    assert len(body.text.split("\n")) == len(markup["document"]["content"])
+    hard_breaks = sum(
+        True
+        for p in markup["document"]["content"]
+        if "content" in p
+        for c in p["content"]
+        if c["type"] == ContentKind.HARD_BREAK
+    )
+    expected = len(markup["document"]["content"]) + hard_breaks
+
+    assert len(body.text.split("\n")) == expected
 
 
 @given(myst.comment_markups(3, True))

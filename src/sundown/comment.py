@@ -34,6 +34,7 @@ class ContentKind(StrEnum):
     PARAGRAPH = "paragraph"
     TEXT = "text"
     MENTION = "da-mention"
+    HARD_BREAK = "hardBreak"
 
 
 @dataclasses.dataclass
@@ -351,6 +352,8 @@ class Body:
                     parts.append(c["text"])
                 elif c["type"] == ContentKind.MENTION:
                     parts.append(c["attrs"]["user"]["username"])
+                elif c["type"] == ContentKind.HARD_BREAK:
+                    parts.append("\n")
                 # Disregard any other content kind.
             lines.append("".join(parts))
 
