@@ -5,7 +5,7 @@ import json
 
 from hypothesis import strategies as st
 
-from sundown.comment import ContentKind
+from sundown.comment import ContentKind, MarkKind
 
 
 @st.composite
@@ -183,7 +183,7 @@ def comment_markups(draw, paragraphs: int = 1, allow_mentions: bool = False) -> 
         paragraphs: Amount of paragraphs to generate.
         allow_mentions: If True, allow some paragraphs to contain a
             mention instead of text. Note: it's not guaranteed that
-                the final markup will have mentions.
+            the final markup will have mentions.
     """
     pars = []
     for _ in range(paragraphs):
@@ -223,10 +223,26 @@ def comment_hard_breaks() -> dict:
 
 
 @st.composite
-def comment_texts(draw) -> dict:
-    """Return DeviantArt comment texts."""
+def comment_texts(draw, with_link: bool = False) -> dict:
+    """
+    Return DeviantArt comment texts.
+
+    Args:
+        with_link: If True, include a "link" mark in the object.
+    """
     alphabet = st.characters(exclude_characters=["\n"])
-    return {"type": str(ContentKind.TEXT), "text": draw(st.text(alphabet, min_size=1))}
+    text = {"type": str(ContentKind.TEXT), "text": draw(st.text(alphabet, min_size=1))}
+
+    if with_link:
+        text["marks"] = [draw(comment_links())]
+
+    return text
+
+
+@st.composite
+def comment_links(draw) -> dict:
+    """Return DeviantArt comment marks of type "link"."""
+    return {"type": str(MarkKind.LINK), "attrs": {"href": draw(comment_urls())}}
 
 
 @st.composite

@@ -37,6 +37,12 @@ class ContentKind(StrEnum):
     HARD_BREAK = "hardBreak"
 
 
+class MarkKind(StrEnum):
+    """Kinds of supported content marks."""
+
+    LINK = "link"
+
+
 @dataclasses.dataclass
 class URL:
     """
@@ -386,3 +392,25 @@ class Body:
             for c in self.markup["document"]["content"]
             if c["type"] == ContentKind.PARAGRAPH
         )
+
+
+def extract_url(text: dict) -> str | None:
+    """
+    Extract the URL from a TEXT content's marks.
+
+    Args:
+        text: JSON data representing a TEXT content.
+
+    Returns:
+        The URL contained in the content's marks, if any, else None.
+    """
+    if not "marks" in text:
+        return None
+
+    url = None
+    for mark in text["marks"]:
+        if mark["type"] == MarkKind.LINK:
+            url = mark["attrs"]["href"]
+            break
+
+    return url

@@ -17,6 +17,7 @@ from sundown.comment import (
     PageIterator,
     PageJSONError,
     URL,
+    extract_url,
 )
 from sundown.client import Client
 from sundown import deviation
@@ -192,3 +193,8 @@ def test_comment_metadata_returns_good_url(dev_id, comment_id):
     m = Metadata(comment_id, p, None, "", datetime.now(), None, 0)
 
     assert m.url.deviation == p and m.url.comment_id == comment_id
+
+
+@given(myst.comment_texts(True))
+def test_extracting_urls_from_text_objects_succeeds(text):
+    assert extract_url(text)
