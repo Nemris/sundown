@@ -1,4 +1,5 @@
 # pylint: disable=missing-module-docstring
+# pylint: disable=missing-function-docstring
 
 from hypothesis import given
 import pytest
@@ -8,7 +9,6 @@ from sundown.client import Client
 from tests import strategies as myst
 
 
-# pylint: disable=missing-function-docstring
 @given(myst.input_tags_with_token())
 async def test_client_authenticates_after_first_query(tag):
     # We'll mimic the Client#get() interface even if we don't use kwargs.
@@ -25,13 +25,11 @@ async def test_client_authenticates_after_first_query(tag):
             assert c.authenticated
 
 
-# pylint: disable=missing-function-docstring
 @given(myst.input_tags_with_token())
 def test_token_extraction_succeeds_if_token_exists(tag):
     assert client.extract_token(tag) in tag
 
 
-# pylint: disable=missing-function-docstring
 @given(myst.input_tags())
 def test_token_extraction_fails_if_token_missing(tag):
     with pytest.raises(ValueError):

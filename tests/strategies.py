@@ -217,8 +217,8 @@ def comment_features(draw) -> list[dict]:
     ]
 
 
-def comment_hard_breaks() -> dict:
-    """Return DeviantArt comment hard breaks."""
+def comment_hard_breaks() -> SearchStrategy[dict]:
+    """Return a strategy that generates DeviantArt comment hard breaks."""
     return st.just({"type": str(ContentKind.HARD_BREAK)})
 
 

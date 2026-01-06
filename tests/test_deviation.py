@@ -1,4 +1,5 @@
 # pylint: disable=missing-module-docstring
+# pylint: disable=missing-function-docstring
 
 from hypothesis import given
 import pytest
@@ -7,7 +8,6 @@ from sundown.deviation import Deviation, Kind, PartialDeviation
 from tests import strategies as myst
 
 
-# pylint: disable=missing-function-docstring
 @given(myst.usernames(), myst.ids())
 def test_deviation_lowercases_artist_in_urls(user, dev_id):
     d = Deviation(user, Kind.ART, dev_id)
@@ -15,7 +15,6 @@ def test_deviation_lowercases_artist_in_urls(user, dev_id):
     assert user.lower() in d.url
 
 
-# pylint: disable=missing-function-docstring
 @given(myst.usernames(), myst.ids())
 def test_deviation_url_contains_all_parameters(user, dev_id):
     d = Deviation(user, Kind.ART, dev_id)
