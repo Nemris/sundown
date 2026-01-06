@@ -366,6 +366,14 @@ class Body:
         return "\n".join(lines)
 
     @property
+    def urls(self) -> Iterator[str]:
+        """The URLs in this comment."""
+        pars = (p for p in self.get_paragraphs() if "content" in p)
+        texts = (c for p in pars for c in p["content"] if c["type"] == ContentKind.TEXT)
+
+        return (u for t in texts if (u := extract_url(t)))
+
+    @property
     def mentions(self) -> Iterator[str]:
         """The mentions in this comment."""
         pars = (p for p in self.get_paragraphs() if "content" in p)
