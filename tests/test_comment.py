@@ -171,6 +171,13 @@ def test_comment_body_finds_all_existing_mentions(markup):
     assert len(list(body.mentions)) == mentions
 
 
+@given(myst.comment_markups([myst.comment_texts(True)], 3))
+def test_comment_body_finds_all_urls(markup):
+    body = Body(markup, {})
+
+    assert len(list(body.urls)) == len(list(body.get_paragraphs()))
+
+
 @given(myst.comment_markups([], 3))
 def test_comment_body_finds_all_paragraphs(markup):
     body = Body(markup, {})
