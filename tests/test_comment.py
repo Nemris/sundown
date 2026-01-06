@@ -136,14 +136,13 @@ def test_page_iterates_through_comments(data, entries):
     assert sum(True for c in Page.from_json(json)) == entries
 
 
-@given(myst.comment_markups(3))
+@given(myst.comment_markups([myst.comment_hard_breaks(), myst.comment_texts()], 3))
 def test_comment_body_finds_all_lines(markup):
     body = Body(markup, {})
 
     hard_breaks = sum(
         True
         for p in markup["document"]["content"]
-        if "content" in p
         for c in p["content"]
         if c["type"] == ContentKind.HARD_BREAK
     )
@@ -152,7 +151,7 @@ def test_comment_body_finds_all_lines(markup):
     assert len(body.text.split("\n")) == expected
 
 
-@given(myst.comment_markups(3, True))
+@given(myst.comment_markups([myst.user_mentions()], 3))
 def test_comment_body_considers_mentions_as_text(markup):
     body = Body(markup, {})
 
@@ -160,7 +159,7 @@ def test_comment_body_considers_mentions_as_text(markup):
         assert m in body.text
 
 
-@given(myst.comment_markups(3, True))
+@given(myst.comment_markups([myst.user_mentions()], 3))
 def test_comment_body_finds_all_existing_mentions(markup):
     body = Body(markup, {})
     mentions = sum(
@@ -172,7 +171,7 @@ def test_comment_body_finds_all_existing_mentions(markup):
     assert len(list(body.mentions)) == mentions
 
 
-@given(myst.comment_markups(3))
+@given(myst.comment_markups([], 3))
 def test_comment_body_finds_all_paragraphs(markup):
     body = Body(markup, {})
 

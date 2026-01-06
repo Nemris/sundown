@@ -4,6 +4,7 @@ from datetime import datetime
 import json
 
 from hypothesis import strategies as st
+from hypothesis.strategies import SearchStrategy
 
 from sundown.comment import ContentKind, MarkKind
 
@@ -166,7 +167,7 @@ def comments(draw, valid: bool = True) -> dict:
         "replies": draw(st.integers()),
         "textContent": {
             "html": {
-                "markup": json.dumps(draw(comment_markups())),
+                "markup": json.dumps(draw(comment_markups([]))),
                 "features": json.dumps(draw(comment_features())),
             },
         },
@@ -175,30 +176,29 @@ def comments(draw, valid: bool = True) -> dict:
 
 
 @st.composite
-def comment_markups(draw, paragraphs: int = 1, allow_mentions: bool = False) -> dict:
+def comment_markups(
+    draw, contents: list[SearchStrategy[dict]], paragraphs: int = 1
+) -> dict:
     """
     Return DeviantArt comment markups.
 
     Args:
+        contents: Strategies to generate paragraph contents. Each
+            paragraph will contain only one content, shrinking to
+            strategies earlier in the list (see Hypothesis one_of()
+            documentation).
         paragraphs: Amount of paragraphs to generate.
-        allow_mentions: If True, allow some paragraphs to contain a
-            mention instead of text. Note: it's not guaranteed that
-            the final markup will have mentions.
     """
     pars = []
     for _ in range(paragraphs):
-        has_content = draw(st.booleans())
-        if not has_content:
-            pars.append({"type": "paragraph"})
+        p = {"type": "paragraph"}
+
+        if not contents:
+            pars.append(p)
             continue
 
-        con = (
-            draw(st.one_of(comment_hard_breaks(), comment_texts(), user_mentions()))
-            if allow_mentions
-            else draw(st.one_of(comment_hard_breaks(), comment_texts()))
-        )
-        par = {"type": "paragraph", "content": [con]}
-        pars.append(par)
+        p["content"] = [draw(st.one_of(contents))]
+        pars.append(p)
 
     return {"document": {"content": pars}}
 
