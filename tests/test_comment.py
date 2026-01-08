@@ -108,38 +108,48 @@ async def test_page_iterator_stops_when_no_more_pages_exist():
                 await anext(pi)
 
 
-@given(myst.comment_pages())
+@given(myst.comment_pages([]))
 def test_page_is_built_from_valid_json(json):
     Page.from_json(json)
 
 
-@given(myst.comment_pages(valid=False))
+@given(myst.comment_pages([], False))
 def test_page_is_not_built_from_invalid_json(json):
     # We only care that the error is the same in all occasions.
     with pytest.raises(PageJSONError):
         Page.from_json(json)
 
 
-@given(myst.comment_pages(), myst.comments(myst.comment_htmls(False)))
-def test_page_ignores_unsupported_comments(json, c):
-    json["thread"].append(c)
+# @given(myst.comment_pages(), myst.comments(myst.comment_htmls(False)))
+@given(
+    myst.comment_pages(
+        [myst.comments(myst.comment_htmls()), myst.comments(myst.comment_htmls(False))]
+    )
+)
+def test_page_ignores_unsupported_comments(json):
     page = Page.from_json(json)
 
     assert len(page) == len(json["thread"]) - 1
 
 
-@given(st.data(), st.integers(min_value=1, max_value=10))
-def test_page_returns_correct_length(data, entries):
-    # Randomizing but capping the amount of comments in a page.
-    json = data.draw(myst.comment_pages(entries))
+@given(
+    myst.comment_pages([myst.comments(myst.comment_htmls())]),
+    st.integers(min_value=1, max_value=10),
+)
+def test_page_returns_correct_length(json, entries):
+    # Generating pages is expensive, so we'll create one and duplicate it.
+    json["thread"] *= entries
 
     assert len(Page.from_json(json)) == entries
 
 
-@given(st.data(), st.integers(min_value=1, max_value=10))
-def test_page_iterates_through_comments(data, entries):
-    # Randomizing but capping the amount of comments in a page.
-    json = data.draw(myst.comment_pages(entries))
+@given(
+    myst.comment_pages([myst.comments(myst.comment_htmls())]),
+    st.integers(min_value=1, max_value=10),
+)
+def test_page_iterates_through_comments(json, entries):
+    # Generating pages is expensive, so we'll create one and duplicate it.
+    json["thread"] *= entries
 
     assert sum(True for c in Page.from_json(json)) == entries
 

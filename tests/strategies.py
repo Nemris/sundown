@@ -106,16 +106,24 @@ def comment_urls(draw, valid: bool = True) -> str:
 
 
 @st.composite
-def comment_pages(draw, entries: int = 1, valid: bool = True) -> dict:
+def comment_pages(
+    draw, comment_strategies: list[SearchStrategy[dict]], valid: bool = True
+) -> dict:
     """
     Return DeviantArt comment pages.
 
+    Note: generating pages is expensive when they're composed of valid
+    comments.
+
     Args:
-        entries: Amount of comments to place in the page. Note: comments
-            are not unique.
-        valid: If True, return a blob resembling a page, else return a
-            page with invalid metadata.
+        comments_strategies: Strategies to generate comments. Each
+            strategy will result in a page comment.
+        valid: If True, return a blob resembling a page, else return an
+            empty dict. When False, comment_strategies are ignored.
     """
+    if not valid:
+        return {}
+
     has_more = draw(st.booleans())
     has_less = draw(st.booleans())
 
@@ -126,18 +134,13 @@ def comment_pages(draw, entries: int = 1, valid: bool = True) -> dict:
     if (next_offset and prev_offset) and next_offset < prev_offset:
         next_offset, prev_offset = prev_offset, next_offset
 
-    page = {
+    return {
         "hasMore": has_more,
         "hasLess": has_less,
         "nextOffset": next_offset,
         "prevOffset": prev_offset,
-        "thread": [draw(comments(comment_htmls()))] * entries,
+        "thread": [draw(c) for c in comment_strategies],
     }
-
-    if not valid:
-        del page["hasMore"]
-
-    return page
 
 
 @st.composite
