@@ -14,6 +14,7 @@ from sundown.deviation import Deviation, Kind, PartialDeviation
 
 
 URL_PATTERN = re.compile(r"www\.deviantart\.com/comments/(\d+)/(\d+)/(\d+)")
+SUPPORTED_COMMENT_KIND = "tiptap"
 
 
 class Error(Exception):
@@ -26,6 +27,10 @@ class PageJSONError(Error):
 
 class CommentJSONError(Error):
     """The JSON representing a comment is malformed."""
+
+
+class InvalidCommentKindError(Error):
+    """The comment kind is unsupported."""
 
 
 class ContentKind(StrEnum):
@@ -193,6 +198,9 @@ class Page:
         """
         Build a Page from a JSON object representing a comment page.
 
+        If the JSON object contains comments of an unsupported type,
+        those comments are ignored.
+
         Args:
             data: A JSON object representing a comment page.
 
@@ -210,10 +218,15 @@ class Page:
         except KeyError as exc:
             raise PageJSONError("page JSON: malformed page metadata") from exc
 
-        try:
-            comments = [Comment.from_json(c) for c in data["thread"]]
-        except CommentJSONError as exc:
-            raise PageJSONError("page JSON: malformed comment section") from exc
+        comments = []
+        for c in data["thread"]:
+            try:
+                comments.append(Comment.from_json(c))
+            except InvalidCommentKindError:
+                # Unsupported comment, let's ignore it.
+                continue
+            except CommentJSONError as exc:
+                raise PageJSONError("page JSON: malformed comment section") from exc
 
         return cls(has_more, has_less, next_offset, prev_offset, comments)
 
@@ -244,6 +257,8 @@ class Comment:
 
         Raises:
             CommentJSONError: If the JSON data is malformed.
+            InvalidCommentKindError: If the comment kind is
+                unsupported.
         """
         return cls(cls._assemble_metadata(data), cls._assemble_body(data))
 
@@ -287,7 +302,12 @@ class Comment:
 
         Raises:
             CommentJSONError: If the JSON data is malformed.
+            InvalidCommentKindError: If the comment kind is
+                unsupported.
         """
+        if (kind := data["textContent"]["html"]["type"]) != SUPPORTED_COMMENT_KIND:
+            raise InvalidCommentKindError(f"{kind!r}: unsupported comment kind")
+
         try:
             markup = json.loads(data["textContent"]["html"]["markup"])
             feats = json.loads(data["textContent"]["html"]["features"])

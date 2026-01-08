@@ -6,7 +6,7 @@ import json
 from hypothesis import strategies as st
 from hypothesis.strategies import SearchStrategy
 
-from sundown.comment import ContentKind, MarkKind
+from sundown.comment import ContentKind, MarkKind, SUPPORTED_COMMENT_KIND
 
 
 @st.composite
@@ -131,7 +131,7 @@ def comment_pages(draw, entries: int = 1, valid: bool = True) -> dict:
         "hasLess": has_less,
         "nextOffset": next_offset,
         "prevOffset": prev_offset,
-        "thread": [draw(comments())] * entries,
+        "thread": [draw(comments(comment_htmls()))] * entries,
     }
 
     if not valid:
@@ -141,11 +141,13 @@ def comment_pages(draw, entries: int = 1, valid: bool = True) -> dict:
 
 
 @st.composite
-def comments(draw, valid: bool = True) -> dict:
+def comments(draw, html_strategy: SearchStrategy[dict], valid: bool = True) -> dict:
     """
     Return DeviantArt comments.
 
     Args:
+        html_strategy: Hypothesis strategy that generates HTML comment
+            objects.
         valid: If True, return a blob resembling a comment, else return
             an empty dict.
     """
@@ -165,13 +167,28 @@ def comments(draw, valid: bool = True) -> dict:
         "posted": draw(comment_timestamps()),
         "edited": draw(st.one_of(st.none(), comment_timestamps())),
         "replies": draw(st.integers()),
-        "textContent": {
-            "html": {
-                "markup": json.dumps(draw(comment_markups([]))),
-                "features": json.dumps(draw(comment_features())),
-            },
-        },
+        "textContent": draw(html_strategy),
         "user": {"username": draw(usernames())},
+    }
+
+
+@st.composite
+def comment_htmls(draw, supported: bool = True) -> dict:
+    """
+    Return DeviantArt comment HTML objects.
+
+    Args:
+        supported: If True, return an HTML blob Sundown supports.
+    """
+    if not supported:
+        return {"html": {"type": ""}}
+
+    return {
+        "html": {
+            "type": SUPPORTED_COMMENT_KIND,
+            "markup": json.dumps(draw(comment_markups([]))),
+            "features": json.dumps(draw(comment_features())),
+        }
     }
 
 

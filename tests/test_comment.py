@@ -52,12 +52,12 @@ def test_comment_url_is_not_built_from_non_comment_url(url):
         _ = URL.from_str(url)
 
 
-@given(myst.comments())
+@given(myst.comments(myst.comment_htmls()))
 def test_comment_is_built_from_valid_json(json):
     Comment.from_json(json)
 
 
-@given(myst.comments(valid=False))
+@given(myst.comments(myst.comment_htmls(), False))
 def test_comment_is_not_built_from_invalid_json(json):
     # We only care that the error is the same in all occasions.
     with pytest.raises(CommentJSONError):
@@ -118,6 +118,14 @@ def test_page_is_not_built_from_invalid_json(json):
     # We only care that the error is the same in all occasions.
     with pytest.raises(PageJSONError):
         Page.from_json(json)
+
+
+@given(myst.comment_pages(), myst.comments(myst.comment_htmls(False)))
+def test_page_ignores_unsupported_comments(json, c):
+    json["thread"].append(c)
+    page = Page.from_json(json)
+
+    assert len(page) == len(json["thread"]) - 1
 
 
 @given(st.data(), st.integers(min_value=1, max_value=10))
