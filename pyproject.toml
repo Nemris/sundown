@@ -3,9 +3,9 @@ name = "sundown"
 version = "0.1.0"
 description = "Interface with DeviantArt's Eclipse browser API."
 authors = [
-    {name = "Nemris",email = "nemris@protonmail.com"}
+    {name = "Nemris", email = "nemris@protonmail.com"}
 ]
-license = {text = "MIT"}
+license = "MIT"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -14,11 +14,11 @@ dependencies = [
 ]
 
 [tool.poetry.group.dev.dependencies]
-pylint = "^3.3.7"
-pytest = "^8.3.5"
 hypothesis = "^6.131.14"
 black = "^25.1.0"
-pytest-asyncio = "^0.26.0"
+pylint = "^4.0.4"
+pytest = "^9.0.2"
+pytest-asyncio = "^1.3.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
