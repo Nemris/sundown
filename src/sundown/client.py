@@ -113,6 +113,8 @@ class Client:
                 response.
             ServerConnectionError: If an error occurs while connecting
                 to the server.
+            Error: If a generic error occurs while connecting to the
+                server.
         """
         try:
             async with self.session.get(url, **kwargs) as resp:
@@ -124,6 +126,8 @@ class Client:
             ) from exc
         except aiohttp.ServerConnectionError as exc:
             raise ServerConnectionError(exc) from exc
+        except aiohttp.ClientError as exc:
+            raise Error(exc) from exc
 
     async def close(self) -> None:
         """Close this client's underlying session."""
@@ -142,7 +146,8 @@ class Client:
             The API's JSON response.
 
         Raises:
-            Error: If an attempt to authenticate failed.
+            Error: If an attempt to authenticate failed or a generic
+                error occurred.
             ServerResponseError: If there was an error in the server's
                 response.
             ServerConnectionError: If an error occurred while connecting
